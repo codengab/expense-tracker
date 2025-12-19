@@ -8,7 +8,7 @@ use App\Filament\Resources\Transactions\Pages\ListTransactions;
 use App\Filament\Resources\Transactions\Schemas\TransactionForm;
 use App\Filament\Resources\Transactions\Tables\TransactionsTable;
 use App\Models\Transaction;
-use BackedEnum;
+use BackedEnum,UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -20,8 +20,9 @@ class TransactionResource extends Resource
 {
     protected static ?string $model = Transaction::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
+    protected static string|UnitEnum|null $navigationGroup = 'Finance';
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowTrendingUp;
+    
     protected static ?string $recordTitleAttribute = 'Transaction';
 
     public static function form(Schema $schema): Schema
@@ -48,6 +49,12 @@ class TransactionResource extends Resource
             'create' => CreateTransaction::route('/create'),
             'edit' => EditTransaction::route('/{record}/edit'),
         ];
+    }
+
+     public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('workspace_id', auth()->user()->current_workspace_id);
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder
