@@ -25,7 +25,7 @@ class TransactionForm
               auth()->user()->current_workspace_id
             );
           }
-        )
+        )->preload()
         ->searchable()->required(),
 
       Select::make('category_id')
@@ -39,7 +39,7 @@ class TransactionForm
               auth()->user()->current_workspace_id
             );
           }
-        )->searchable()->required(),
+        )->preload()->searchable()->required(),
 
         
       TextInput::make('amount')
