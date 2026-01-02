@@ -11,14 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('workspace_user', function (Blueprint $table) {
+        Schema::create('user_workspace', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('workspace_id')->constrained()->cascadeOnDelete()->comment('Wallet milik workspace tertentu');
-            $table->string('name')->comment('Nama wallet / rekening / e-wallet');
-            $table->decimal('balance', 20, 2)->default(0)->comment('Saldo awal / saat ini');
-            $table->string('type')->comment('Jenis wallet: cash, bank, e-wallet, crypto, dll');
+
+            $table->foreignId('workspace_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->foreignId('user_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->enum('role', ['owner', 'admin', 'member'])
+                ->default('member');
+
             $table->timestamps();
-            $table->softDeletes();
+
+            $table->unique(['workspace_id', 'user_id']);
         });
     }
 
