@@ -12,7 +12,6 @@ Aplikasi keuangan pribadi & keluarga — dibangun dengan SvelteKit, Tailwind CSS
 | Styling    | Tailwind CSS + Custom CSS Vars     |
 | Backend    | Supabase (PostgreSQL + Auth + RLS) |
 | Hosting    | Cloudflare Pages                   |
-| OCR        | Tesseract.js (client-side only)    |
 
 ---
 
@@ -33,8 +32,7 @@ dompet-app/
 │   │   │   ├── category.service.js
 │   │   │   └── workspace.service.js
 │   │   └── utils/
-│   │       ├── format.js         # Currency, date formatters (IDR)
-│   │       └── ocr.js            # Receipt scanner (Tesseract.js)
+│   │       └── format.js         # Currency, date formatters (IDR)
 │   ├── components/
 │   │   ├── ui/
 │   │   │   ├── Modal.svelte
@@ -72,8 +70,8 @@ dompet-app/
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/yourname/dompet-app
-cd dompet-app
+git clone https://github.com/codengab/expense-tracker
+cd expense-tracker
 npm install
 ```
 
@@ -155,26 +153,18 @@ Setiap tabel dilindungi RLS. User hanya bisa akses data workspace yang mereka ik
 
 ## 📱 Fitur
 
-### Phase 1 — MVP ✅
 - [x] Auth (login, register, logout)
 - [x] Onboarding (buat workspace pertama)
 - [x] Manajemen dompet (CRUD, toggle aktif, saldo real-time)
 - [x] Kategori (default sistem + kustom per workspace)
 - [x] Transaksi (income, expense, transfer + filter)
 - [x] Anggaran per kategori per bulan
-
-### Phase 2 ✅
 - [x] Copy budget (replace / merge)
 - [x] Dashboard dengan statistik
 - [x] Laporan pengeluaran per kategori
-
-### Phase 3 ✅
 - [x] Multi-user workspace
 - [x] Role management (admin/member/viewer)
 - [x] Undang anggota via email
-
-### Bonus ✅
-- [x] Scan struk (OCR client-side, Tesseract.js)
 - [x] Toast notifications
 - [x] Mobile-responsive sidebar
 - [x] Format IDR (Rp 1,5jt / Rp 24,5rb)
@@ -236,4 +226,4 @@ formatCurrencyShort(75000)   // → "Rp 75rb"
 
 ## 📝 Lisensi
 
-MIT — bebas digunakan dan dimodifikasi.
+Apache2
