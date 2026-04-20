@@ -1,10 +1,10 @@
 // src/lib/utils/format.js
 
-const IDR = new Intl.NumberFormat('id-ID', {
-  style: 'currency',
-  currency: 'IDR',
+const IDR = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
   minimumFractionDigits: 0,
-  maximumFractionDigits: 0
+  maximumFractionDigits: 0,
 });
 
 export function formatCurrency(amount) {
@@ -12,39 +12,44 @@ export function formatCurrency(amount) {
 }
 
 export function formatCurrencyShort(amount) {
+  const isNegative = amount < 0;
   const n = Math.abs(amount || 0);
-  if (n >= 1_000_000_000) return `Rp ${(n / 1_000_000_000).toFixed(1)}M`;
-  if (n >= 1_000_000) return `Rp ${(n / 1_000_000).toFixed(1)}jt`;
-  if (n >= 1_000) return `Rp ${(n / 1_000).toFixed(0)}rb`;
-  return formatCurrency(amount);
+
+  let result;
+  if (n >= 1_000_000_000) result = `Rp ${(n / 1_000_000_000).toFixed(1)}M`;
+  else if (n >= 1_000_000) result = `Rp ${(n / 1_000_000).toFixed(1)}jt`;
+  else if (n >= 1_000) result = `Rp ${(n / 1_000).toFixed(0)}rb`;
+  else result = formatCurrency(n);
+
+  return isNegative ? `- ${result}` : result;
 }
 
 export function formatDate(dateStr) {
-  if (!dateStr) return '';
-  return new Date(dateStr).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
   });
 }
 
 export function formatDateShort(dateStr) {
-  if (!dateStr) return '';
-  return new Date(dateStr).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'short'
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
   });
 }
 
 export function formatMonthYear(year, month) {
-  return new Date(year, month - 1, 1).toLocaleDateString('id-ID', {
-    month: 'long',
-    year: 'numeric'
+  return new Date(year, month - 1, 1).toLocaleDateString("id-ID", {
+    month: "long",
+    year: "numeric",
   });
 }
 
 export function toDateInput(date = new Date()) {
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split("T")[0];
 }
 
 export function getCurrentMonthYear() {
@@ -55,7 +60,7 @@ export function getCurrentMonthYear() {
 export function getMonthOptions() {
   return Array.from({ length: 12 }, (_, i) => ({
     value: i + 1,
-    label: new Date(2024, i, 1).toLocaleDateString('id-ID', { month: 'long' })
+    label: new Date(2024, i, 1).toLocaleDateString("id-ID", { month: "long" }),
   }));
 }
 
