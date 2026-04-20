@@ -11,17 +11,16 @@
   import Sidebar from '../components/layout/Sidebar.svelte';
   import Toast from '../components/ui/Toast.svelte';
 
-  $: isAuthPage    = $page.url.pathname.startsWith('/auth');
-  $: isOnboarding  = $page.url.pathname === '/onboarding';
-  $: needsSidebar  = !isAuthPage && !isOnboarding;
+  $: isAuthPage   = $page.url.pathname.startsWith('/auth');
+  $: isOnboarding = $page.url.pathname === '/onboarding';
 
   onMount(async () => {
+    // ── getSession() membaca token dari localStorage secara sinkron ──
     const { data: { session } } = await supabase.auth.getSession();
 
     if (session?.user) {
       user.set(session.user);
       const wsList = await loadAppData();
-      // Redirect dari root atau auth page
       if ($page.url.pathname === '/' || isAuthPage) {
         goto(wsList.length === 0 ? '/onboarding' : '/dashboard', { replaceState: true });
       }
@@ -29,15 +28,28 @@
       if (!isAuthPage) goto('/auth/login', { replaceState: true });
     }
 
+    // Set false SETELAH semua data siap — mencegah halaman render
+    // sebelum workspaceId tersedia, yang menyebabkan spinner infinite
     isLoading.set(false);
 
+    // Subscribe perubahan auth (login baru, logout, token expire+refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // INITIAL_SESSION sudah ditangani oleh getSession() di atas — skip
       if (event === 'INITIAL_SESSION') return;
+
+      // TOKEN_REFRESHED: token baru, user tetap sama → tidak perlu reload data
+      if (event === 'TOKEN_REFRESHED') {
+        user.set(session?.user ?? null);
+        return;
+      }
+
       user.set(session?.user ?? null);
+
       if (session?.user) {
         const wsList = await loadAppData();
         if (isAuthPage) goto(wsList.length === 0 ? '/onboarding' : '/dashboard');
       } else {
+        // Logout atau session expired
         userProfile.set(null);
         workspaces.set([]);
         activeWorkspace.set(null);
@@ -74,6 +86,9 @@
     <Sidebar />
     <div class="main-content"><slot /></div>
   </div>
+{:else}
+  <!-- user null tapi bukan auth page: sedang redirect ke login -->
+  <!-- Tampilkan blank bukan spinner agar tidak flicker -->
 {/if}
 
 <Toast />
