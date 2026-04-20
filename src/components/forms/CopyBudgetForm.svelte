@@ -1,6 +1,7 @@
 <!-- src/components/forms/CopyBudgetForm.svelte -->
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { get } from 'svelte/store';
   import { workspaceId, showToast } from '$lib/stores';
   import { budgetService } from '$lib/services/budget.service';
   import { getMonthOptions, getYearOptions, formatMonthYear } from '$lib/utils/format';
@@ -13,10 +14,10 @@
   const years = getYearOptions();
 
   let fromMonth = currentMonth;
-  let fromYear = currentYear;
-  let toMonth = currentMonth === 12 ? 1 : currentMonth + 1;
-  let toYear = currentMonth === 12 ? currentYear + 1 : currentYear;
-  let mode = 'replace';
+  let fromYear  = currentYear;
+  let toMonth   = currentMonth === 12 ? 1 : currentMonth + 1;
+  let toYear    = currentMonth === 12 ? currentYear + 1 : currentYear;
+  let mode    = 'replace';
   let loading = false;
 
   async function handleCopy() {
@@ -25,10 +26,14 @@
       return;
     }
 
+    // Gunakan get() — aman di dalam modal/komponen nested
+    const wsId = get(workspaceId);
+    if (!wsId) { showToast('Workspace tidak valid', 'error'); return; }
+
     loading = true;
     try {
       const count = await budgetService.copyBudget(
-        $workspaceId, fromMonth, fromYear, toMonth, toYear, mode
+        wsId, fromMonth, fromYear, toMonth, toYear, mode
       );
       showToast(`Berhasil menyalin ${count} anggaran ke ${formatMonthYear(toYear, toMonth)}`);
       dispatch('copied', { toMonth, toYear });
@@ -83,7 +88,6 @@
     </div>
   </div>
 
-  <!-- Mode -->
   <div class="mode-section">
     <label class="label">Mode Salin</label>
     <div class="mode-options">
@@ -112,51 +116,31 @@
 <style>
   .copy-form { display: flex; flex-direction: column; gap: 1rem; }
   .copy-desc { font-size: 0.875rem; color: #64748B; }
-
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
   .field { display: flex; flex-direction: column; gap: 0.375rem; }
   .label { font-size: 0.8125rem; font-weight: 500; color: #374151; }
-
   .input {
-    padding: 0.625rem 0.75rem;
-    border: 1px solid #E2E8F0;
-    border-radius: 0.625rem;
-    font-size: 0.875rem;
-    color: #0F172A;
-    background: white;
-    outline: none;
+    padding: 0.625rem 0.75rem; border: 1px solid #E2E8F0;
+    border-radius: 0.625rem; font-size: 0.875rem; color: #0F172A;
+    background: white; outline: none;
   }
   .input:focus { border-color: #0EA5E9; }
-
   .arrow { text-align: center; font-size: 1.5rem; color: #94A3B8; margin: -0.25rem 0; }
-
   .mode-section { display: flex; flex-direction: column; gap: 0.5rem; }
   .mode-options { display: flex; flex-direction: column; gap: 0.5rem; }
   .mode-option {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.625rem;
-    padding: 0.75rem;
-    border: 2px solid #E2E8F0;
-    border-radius: 0.625rem;
-    cursor: pointer;
-    transition: border-color 0.15s;
+    display: flex; align-items: flex-start; gap: 0.625rem;
+    padding: 0.75rem; border: 2px solid #E2E8F0;
+    border-radius: 0.625rem; cursor: pointer; transition: border-color 0.15s;
   }
   .mode-option input { margin-top: 0.1875rem; accent-color: #0EA5E9; }
   .mode-option--selected { border-color: #0EA5E9; background: #F0F9FF; }
   .mode-option strong { display: block; font-size: 0.875rem; color: #0F172A; }
   .mode-option span { font-size: 0.8125rem; color: #64748B; }
-
   .btn-copy {
-    padding: 0.75rem;
-    background: #0EA5E9;
-    color: white;
-    border: none;
-    border-radius: 0.75rem;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
+    padding: 0.75rem; background: #0EA5E9; color: white; border: none;
+    border-radius: 0.75rem; font-size: 0.9375rem; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
   }
   .btn-copy:hover { background: #0284C7; }
   .btn-copy:disabled { opacity: 0.6; cursor: not-allowed; }

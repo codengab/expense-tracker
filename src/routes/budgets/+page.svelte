@@ -43,7 +43,7 @@
     if (!wsId) return;
     loading = true;
     try {
-      budgetItems = await budgetService.getByMonth($workspaceId, year, month);
+      budgetItems = await budgetService.getByMonth(wsId, year, month);
     } finally {
       loading = false;
     }
@@ -71,7 +71,9 @@
     const amount = parseFloat(String(formAmount).replace(/\./g, '').replace(',', '.'));
     formLoading = true;
     try {
-      await budgetService.upsert($workspaceId, formCategoryId, year, month, amount);
+      const wsId = get(workspaceId);
+      if (!wsId) { showToast('Workspace tidak valid', 'error'); return; }
+      await budgetService.upsert(wsId, formCategoryId, year, month, amount);
       showToast('Anggaran berhasil disimpan');
       showAddModal = false;
       await loadData();

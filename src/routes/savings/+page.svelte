@@ -106,7 +106,9 @@
         await savingsService.update(editingGoal.id, payload);
         showToast('Tabungan rencana diperbarui');
       } else {
-        await savingsService.create($workspaceId, payload);
+        const wsId = get(workspaceId);
+        if (!wsId) { showToast('Workspace tidak valid', 'error'); return; }
+        await savingsService.create(wsId, payload);
         showToast('Tabungan rencana dibuat!');
       }
       showFormModal = false;

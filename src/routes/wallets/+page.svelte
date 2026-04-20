@@ -75,7 +75,9 @@
         });
         showToast('Dompet berhasil diperbarui');
       } else {
-        await walletService.create($workspaceId, {
+        const wsId = get(workspaceId);
+        if (!wsId) { showToast('Workspace tidak valid', 'error'); return; }
+        await walletService.create(wsId, {
           name: formName.trim(), type: formType,
           initial_balance: balance, color: formColor
         });
