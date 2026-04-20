@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dompet App — Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F1F5F9;
+    --card: #FFFFFF;
+    --border: #E2E8F0;
+    --primary: #0EA5E9;
+    --primary-dark: #0284C7;
+    --accent: #38BDF8;
+    --income: #16A34A;
+    --expense: #DC2626;
+    --warning: #F59E0B;
+    --text: #0F172A;
+    --text-2: #475569;
+    --text-3: #94A3B8;
+    --sidebar-w: 224px;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+    transition: transform .25s ease;
+  }
+
+  .sidebar-logo {
+    display: flex; align-items: center; gap: 8px;
+    padding: 20px 16px 12px;
+  }
+  .sidebar-logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #0EA5E9, #38BDF8);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .sidebar-logo-text { font-size: 17px; font-weight: 700; letter-spacing: -.03em; }
+
+  .workspace-pill {
+    margin: 0 12px 12px;
+    padding: 8px 12px;
+    background: #F8FAFC;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-2);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .workspace-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
+
+  .nav { flex: 1; padding: 4px 8px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-2);
+    cursor: pointer;
+    transition: all .15s;
+    margin-bottom: 2px;
+    border: none; background: transparent; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: #F1F5F9; color: var(--text); }
+  .nav-item.active { background: #E0F2FE; color: var(--primary); font-weight: 600; }
+  .nav-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: .75; }
+  .nav-item.active .nav-icon { opacity: 1; }
+
+  .sidebar-footer { padding: 8px; border-top: 1px solid var(--border); }
+  .logout-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; width: 100%;
+    border: none; background: transparent;
+    border-radius: 8px; font-size: 13px; font-weight: 500;
+    color: var(--text-3); cursor: pointer; transition: all .15s;
+  }
+  .logout-btn:hover { background: #FEF2F2; color: var(--expense); }
+
+  /* ===== MAIN ===== */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topbar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar-title { font-size: 15px; font-weight: 600; }
+  .topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all .15s;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--bg); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+
+  .page-content { padding: 24px; flex: 1; }
+
+  /* ===== STAT CARDS ===== */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .stat-label { font-size: 11.5px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+  .stat-value { font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
+  .stat-value.income { color: var(--income); }
+  .stat-value.expense { color: var(--expense); }
+  .stat-value.primary { color: var(--primary); }
+  .stat-sub { font-size: 11.5px; color: var(--text-3); margin-top: 4px; }
+
+  /* ===== GRID ===== */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .col-span-2 { grid-column: span 2; }
+
+  /* ===== CARD ===== */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .card-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-title { font-size: 13.5px; font-weight: 600; }
+  .card-body { padding: 16px; }
+
+  /* ===== TRANSACTIONS ===== */
+  .txn-list { display: flex; flex-direction: column; }
+  .txn-date-group { font-size: 11.5px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; padding: 10px 16px 6px; }
+  .txn-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 16px;
+    border-top: 1px solid var(--border);
+    transition: background .1s;
+    cursor: pointer;
+  }
+  .txn-item:hover { background: #FAFBFC; }
+  .txn-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .txn-info { flex: 1; min-width: 0; }
+  .txn-name { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .txn-meta { font-size: 12px; color: var(--text-3); }
+  .txn-amount { font-size: 14px; font-weight: 700; text-align: right; }
+  .txn-amount.income { color: var(--income); }
+  .txn-amount.expense { color: var(--expense); }
+
+  /* ===== BUDGET BARS ===== */
+  .budget-item { margin-bottom: 14px; }
+  .budget-item:last-child { margin-bottom: 0; }
+  .budget-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+  .budget-cat { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; }
+  .budget-cat-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .budget-amounts { font-size: 12px; color: var(--text-3); }
+  .budget-amounts strong { color: var(--text-2); font-weight: 600; }
+  .progress-track { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; transition: width .6s ease; }
+  .budget-pct { font-size: 11px; color: var(--text-3); margin-top: 3px; text-align: right; }
+
+  /* ===== WALLET CARDS ===== */
+  .wallet-card {
+    border-radius: 14px;
+    padding: 16px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .wallet-type { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; opacity: .7; }
+  .wallet-name { font-size: 15px; font-weight: 700; margin: 4px 0 12px; }
+  .wallet-balance { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+  .wallet-badge {
+    position: absolute; top: 12px; right: 12px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    padding: 3px 8px; border-radius: 99px; background: rgba(255,255,255,.2);
+  }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,.45);
+    backdrop-filter: blur(2px);
+    z-index: 100;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  @media (min-width: 640px) { .modal-overlay { align-items: center; } }
+  .modal {
+    background: var(--card);
+    border-radius: 16px;
+    width: 100%; max-width: 460px;
+    max-height: 90vh; overflow-y: auto;
+    animation: slide-up .25s ease;
+  }
+  @keyframes slide-up { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-title { font-size: 15px; font-weight: 700; }
+  .modal-close {
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; background: var(--bg); border-radius: 6px;
+    cursor: pointer; font-size: 14px; color: var(--text-2);
+    transition: background .15s;
+  }
+  .modal-close:hover { background: var(--border); }
+  .modal-body { padding: 20px; }
+
+  /* ===== FORM ===== */
+  .type-tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 3px; gap: 3px; margin-bottom: 16px; }
+  .type-tab {
+    flex: 1; padding: 7px;
+    border-radius: 7px; border: none; background: transparent;
+    font-size: 12.5px; font-weight: 600; color: var(--text-3);
+    cursor: pointer; transition: all .15s; font-family: inherit;
+  }
+  .type-tab.active { background: white; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .type-tab.active.expense { color: var(--expense); }
+  .type-tab.active.income { color: var(--income); }
+  .type-tab.active.transfer { color: var(--primary); }
+
+  .form-field { margin-bottom: 14px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; display: block; }
+  .form-input, .form-select {
+    width: 100%; padding: 9px 12px;
+    border: 1.5px solid var(--border); border-radius: 9px;
+    font-size: 14px; color: var(--text); background: white;
+    outline: none; transition: border-color .15s; font-family: inherit;
+    appearance: none;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14,165,233,.1); }
+  .amount-wrap { position: relative; }
+  .amount-prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text-3); font-weight: 600; }
+  .form-input.amount { padding-left: 36px; font-size: 18px; font-weight: 700; }
+
+  .btn-block { width: 100%; padding: 11px; font-size: 14px; justify-content: center; margin-top: 4px; }
+
+  /* ===== BADGE ===== */
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 8px; border-radius: 99px;
+    font-size: 11.5px; font-weight: 600;
+  }
+  .badge-blue { background: #E0F2FE; color: #0369A1; }
+  .badge-green { background: #DCFCE7; color: #15803D; }
+  .badge-red { background: #FEE2E2; color: #B91C1C; }
+  .badge-amber { background: #FEF3C7; color: #B45309; }
+
+  /* ===== TABS ===== */
+  .page-tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+  .page-tab {
+    padding: 7px 14px; border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none; background: transparent;
+    color: var(--text-3); transition: all .15s; font-family: inherit;
+  }
+  .page-tab.active { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+
+  /* ===== PAGES ===== */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ===== TOAST ===== */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #0F172A; color: white;
+    padding: 10px 18px; border-radius: 10px;
+    font-size: 13.5px; font-weight: 500;
+    z-index: 999;
+    opacity: 0; transition: opacity .25s;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+
+  /* ===== OCR ===== */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .15s;
+    background: var(--bg);
+  }
+  .drop-zone:hover { border-color: var(--primary); background: #F0F9FF; }
+  .drop-icon { font-size: 32px; margin-bottom: 8px; }
+  .drop-label { font-size: 14px; font-weight: 600; color: var(--text-2); }
+  .drop-sub { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+
+  /* chart bar */
+  .bar-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bar-label { width: 110px; font-size: 12.5px; font-weight: 500; color: var(--text-2); text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 99px; }
+  .bar-val { width: 80px; font-size: 12px; font-weight: 700; color: var(--text-2); }
+
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .sidebar { transform: translateX(-100%); }
+    .main { margin-left: 0; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .page-content { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">💰</div>
+    <span class="sidebar-logo-text">Dompet</span>
+  </div>
+
+  <div class="workspace-pill">
+    <div class="workspace-dot"></div>
+    Keluarga Budi
+  </div>
+
+  <nav class="nav">
+    <button class="nav-item active" onclick="showPage('dashboard', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="showPage('transactions', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Transaksi
+    </button>
+    <button class="nav-item" onclick="showPage('budgets', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>
+      Anggaran
+    </button>
+    <button class="nav-item" onclick="showPage('wallets', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Dompet
+    </button>
+    <button class="nav-item" onclick="showPage('reports', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Laporan
+    </button>
+    <button class="nav-item" onclick="showPage('settings', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Pengaturan
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="logout-btn">
+      <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Keluar
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <span class="topbar-title" id="page-title">Dashboard</span>
+    <div class="topbar-actions">
+      <span style="font-size:12px;color:var(--text-3);">April 2025</span>
+      <button class="btn btn-primary" onclick="openModal('txn-modal')">
+        <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Transaksi Baru
+      </button>
+    </div>
+  </div>
+
+  <!-- PAGE CONTENT -->
+  <div class="page-content">
+
+    <!-- ===== DASHBOARD PAGE ===== -->
+    <div class="page active" id="page-dashboard">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Saldo</div>
+          <div class="stat-value primary">Rp 24,5jt</div>
+          <div class="stat-sub">3 dompet aktif</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pemasukan Bulan Ini</div>
+          <div class="stat-value income">Rp 12,0jt</div>
+          <div class="stat-sub">↑ dari bulan lalu</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pengeluaran Bulan Ini</div>
+          <div class="stat-value expense">Rp 7,35jt</div>
+          <div class="stat-sub">61% dari anggaran</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Sisa Anggaran</div>
+          <div class="stat-value" style="color:var(--warning)">Rp 4,65jt</div>
+          <div class="stat-sub">dari total Rp 12jt</div>
+        </div>
+      </div>
+
+      <!-- Content grid -->
+      <div class="grid-2">
+        <!-- Recent Transactions -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Transaksi Terbaru</span>
+            <button class="btn btn-ghost btn-sm" onclick="showPage('transactions', document.querySelector('.nav-item:nth-child(2)'))">Lihat Semua</button>
+          </div>
+          <div class="txn-list">
+            <div class="txn-date-group">Hari ini, 18 Apr</div>
+            <div class="txn-item">
+              <div class="txn-icon" style="background:#FFF7ED;">🍜</div>
+              <div class="txn-info">
+                <div class="txn-name">Makan Siang</div>
+                <div class="txn-meta">Makanan & Minuman · BCA Tabungan</div>
+              </div>
+              <div class="txn-amount expense">−Rp 35.000</div>
+            </div>
+            <div class="txn-item">
+              <div class="txn-icon" style="background:#F0FDF4;">💼</div>
+              <div class="txn-info">
+                <div class="txn-name">Gaji April</div>
+                <div class="txn-meta">Gaji · BCA Tabungan</div>
+              </div>
+              <div class="txn-amount income">+Rp 12.000.000</div>
+            </div>
+            <div class="txn-date-group">Kemarin, 17 Apr</div>
+            <div class="txn-item">
+              <div class="txn-icon" style="background:#EFF6FF;">🚗</div>
+              <div class="txn-info">
+                <div class="txn-name">Bensin Motor</div>
+                <div class="txn-meta">Transportasi · GoPay</div>
+              </div>
+              <div class="txn-amount expense">−Rp 80.000</div>
+            </div>
+            <div class="txn-item">
+              <div class="txn-icon" style="background:#FDF4FF;">📱</div>
+              <div class="txn-info">
+                <div class="txn-name">Tagihan Internet</div>
+                <div class="txn-meta">Tagihan · BCA Tabungan</div>
+              </div>
+              <div class="txn-amount expense">−Rp 350.000</div>
+            </div>
+            <div class="txn-item">
+              <div class="txn-icon" style="background:#F0FDF4;">🛒</div>
+              <div class="txn-info">
+                <div class="txn-name">Belanja Indomaret</div>
+                <div class="txn-meta">Belanja · GoPay</div>
+              </div>
+              <div class="txn-amount expense">−Rp 120.000</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Budget Summary -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Anggaran April</span>
+            <button class="btn btn-ghost btn-sm" onclick="showPage('budgets', document.querySelector('.nav-item:nth-child(3)'))">Kelola</button>
+          </div>
+          <div class="card-body">
+            <div class="budget-item">
+              <div class="budget-header">
+                <div class="budget-cat"><div class="budget-cat-dot" style="background:#F97316"></div>Makanan</div>
+                <div class="budget-amounts"><strong>Rp 1,8jt</strong> / Rp 3jt</div>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:60%;background:#F97316"></div></div>
+              <div class="budget-pct">60%</div>
+            </div>
+            <div class="budget-item">
+              <div class="budget-header">
+                <div class="budget-cat"><div class="budget-cat-dot" style="background:#8B5CF6"></div>Transportasi</div>
+                <div class="budget-amounts"><strong>Rp 680rb</strong> / Rp 1jt</div>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:68%;background:#8B5CF6"></div></div>
+              <div class="budget-pct">68%</div>
+            </div>
+            <div class="budget-item">
+              <div class="budget-header">
+                <div class="budget-cat"><div class="budget-cat-dot" style="background:#F59E0B"></div>Tagihan</div>
+                <div class="budget-amounts"><strong>Rp 2,1jt</strong> / Rp 2jt</div>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:100%;background:#DC2626"></div></div>
+              <div class="budget-pct" style="color:var(--expense)">⚠ 105% — Melebihi anggaran!</div>
+            </div>
+            <div class="budget-item">
+              <div class="budget-header">
+                <div class="budget-cat"><div class="budget-cat-dot" style="background:#EC4899"></div>Belanja</div>
+                <div class="budget-amounts"><strong>Rp 650rb</strong> / Rp 2jt</div>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:32%;background:#EC4899"></div></div>
+              <div class="budget-pct">32%</div>
+            </div>
+            <div class="budget-item">
+              <div class="budget-header">
+                <div class="budget-cat"><div class="budget-cat-dot" style="background:#EF4444"></div>Kesehatan</div>
+                <div class="budget-amounts"><strong>Rp 120rb</strong> / Rp 1jt</div>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:12%;background:#EF4444"></div></div>
+              <div class="budget-pct">12%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TRANSACTIONS PAGE ===== -->
+    <div class="page" id="page-transactions">
+      <!-- Filters -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+        <select class="form-select" style="width:auto;font-size:13px;">
+          <option>Semua Tipe</option>
+          <option>Pemasukan</option>
+          <option>Pengeluaran</option>
+          <option>Transfer</option>
+        </select>
+        <select class="form-select" style="width:auto;font-size:13px;">
+          <option>Semua Kategori</option>
+          <option>Makanan & Minuman</option>
+          <option>Transportasi</option>
+          <option>Belanja</option>
+          <option>Tagihan</option>
+        </select>
+        <select class="form-select" style="width:auto;font-size:13px;">
+          <option>Semua Dompet</option>
+          <option>BCA Tabungan</option>
+          <option>GoPay</option>
+          <option>Tunai</option>
+        </select>
+        <input type="month" class="form-input" style="width:auto;font-size:13px;" value="2025-04">
+        <button class="btn btn-primary btn-sm" onclick="openModal('ocr-modal')">📷 Scan Struk</button>
+      </div>
+
+      <div class="card">
+        <div class="txn-list">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;color:var(--text-3);">Menampilkan 18 transaksi</span>
+            <div style="display:flex;gap:16px;font-size:12.5px;">
+              <span style="color:var(--income);font-weight:600;">+ Rp 12.000.000</span>
+              <span style="color:var(--expense);font-weight:600;">− Rp 7.350.000</span>
+            </div>
+          </div>
+          <div class="txn-date-group">18 April 2025</div>
+          <div class="txn-item" onclick="showToast('Edit transaksi')">
+            <div class="txn-icon" style="background:#FFF7ED;">🍜</div>
+            <div class="txn-info"><div class="txn-name">Makan Siang di Warteg</div><div class="txn-meta">Makanan · BCA</div></div>
+            <div><div class="txn-amount expense">−Rp 35.000</div><div class="badge badge-red" style="margin-top:3px;">pengeluaran</div></div>
+          </div>
+          <div class="txn-item" onclick="showToast('Edit transaksi')">
+            <div class="txn-icon" style="background:#F0FDF4;">💼</div>
+            <div class="txn-info"><div class="txn-name">Gaji April 2025</div><div class="txn-meta">Gaji · BCA</div></div>
+            <div><div class="txn-amount income">+Rp 12.000.000</div><div class="badge badge-green" style="margin-top:3px;">pemasukan</div></div>
+          </div>
+          <div class="txn-date-group">17 April 2025</div>
+          <div class="txn-item" onclick="showToast('Edit transaksi')">
+            <div class="txn-icon" style="background:#EFF6FF;">🚗</div>
+            <div class="txn-info"><div class="txn-name">Bensin Motor Full</div><div class="txn-meta">Transportasi · GoPay</div></div>
+            <div><div class="txn-amount expense">−Rp 80.000</div></div>
+          </div>
+          <div class="txn-item" onclick="showToast('Edit transaksi')">
+            <div class="txn-icon" style="background:#FDF4FF;">📱</div>
+            <div class="txn-info"><div class="txn-name">Internet Indihome April</div><div class="txn-meta">Tagihan · BCA</div></div>
+            <div><div class="txn-amount expense">−Rp 350.000</div></div>
+          </div>
+          <div class="txn-item" onclick="showToast('Edit transaksi')">
+            <div class="txn-icon" style="background:#F0FDF4;">🛒</div>
+            <div class="txn-info"><div class="txn-name">Belanja Indomaret</div><div class="txn-meta">Belanja · GoPay</div></div>
+            <div><div class="txn-amount expense">−Rp 120.000</div></div>
+          </div>
+          <div class="txn-date-group">15 April 2025</div>
+          <div class="txn-item" onclick="showToast('Edit transaksi')">
+            <div class="txn-icon" style="background:#EFF6FF;">🔄</div>
+            <div class="txn-info"><div class="txn-name">Transfer ke GoPay</div><div class="txn-meta">Transfer · BCA → GoPay</div></div>
+            <div><div class="txn-amount" style="color:var(--primary);">⇄ Rp 500.000</div><div class="badge badge-blue" style="margin-top:3px;">transfer</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== BUDGETS PAGE ===== -->
+    <div class="page" id="page-budgets">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;gap:8px;">
+          <select class="form-select" style="width:auto;font-size:13px;">
+            <option>April 2025</option>
+            <option>Maret 2025</option>
+            <option>Februari 2025</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="openModal('copy-modal')">📋 Salin Anggaran</button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('budget-modal')">+ Tambah Anggaran</button>
+        </div>
+      </div>
+
+      <!-- Budget overview -->
+      <div class="stats-grid" style="margin-bottom:16px;">
+        <div class="stat-card">
+          <div class="stat-label">Total Anggaran</div>
+          <div class="stat-value primary">Rp 12.000.000</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Terpakai</div>
+          <div class="stat-value expense">Rp 7.350.000</div>
+          <div class="stat-sub">61.25%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Sisa</div>
+          <div class="stat-value income">Rp 4.650.000</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Melebihi Batas</div>
+          <div class="stat-value expense">1 kategori</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Detail Anggaran per Kategori</span>
+        </div>
+        <div class="card-body">
+          <div id="budget-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== WALLETS PAGE ===== -->
+    <div class="page" id="page-wallets">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="openModal('wallet-modal')">+ Tambah Dompet</button>
+      </div>
+
+      <div class="grid-3">
+        <div class="wallet-card" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);">
+          <div class="wallet-badge">Bank</div>
+          <div class="wallet-type">BCA Tabungan</div>
+          <div class="wallet-name">Rekening Utama</div>
+          <div class="wallet-balance">Rp 18.500.000</div>
+        </div>
+        <div class="wallet-card" style="background:linear-gradient(135deg,#16A34A,#15803D);">
+          <div class="wallet-badge">E-Wallet</div>
+          <div class="wallet-type">GoPay</div>
+          <div class="wallet-name">GoPay Aktif</div>
+          <div class="wallet-balance">Rp 4.200.000</div>
+        </div>
+        <div class="wallet-card" style="background:linear-gradient(135deg,#F59E0B,#D97706);">
+          <div class="wallet-badge">Tunai</div>
+          <div class="wallet-type">Dompet Fisik</div>
+          <div class="wallet-name">Uang Tunai</div>
+          <div class="wallet-balance">Rp 1.800.000</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-header"><span class="card-title">Semua Dompet</span></div>
+        <div class="txn-list">
+          <div class="txn-item">
+            <div class="txn-icon" style="background:#E0F2FE;">🏦</div>
+            <div class="txn-info">
+              <div class="txn-name">BCA Tabungan</div>
+              <div class="txn-meta">Bank · Aktif</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:15px;font-weight:700;color:var(--income)">Rp 18.500.000</div>
+              <div class="badge badge-green">aktif</div>
+            </div>
+          </div>
+          <div class="txn-item">
+            <div class="txn-icon" style="background:#DCFCE7;">📱</div>
+            <div class="txn-info">
+              <div class="txn-name">GoPay</div>
+              <div class="txn-meta">E-Wallet · Aktif</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:15px;font-weight:700;color:var(--income)">Rp 4.200.000</div>
+              <div class="badge badge-green">aktif</div>
+            </div>
+          </div>
+          <div class="txn-item">
+            <div class="txn-icon" style="background:#FEF3C7;">💵</div>
+            <div class="txn-info">
+              <div class="txn-name">Uang Tunai</div>
+              <div class="txn-meta">Tunai · Aktif</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:15px;font-weight:700;color:var(--income)">Rp 1.800.000</div>
+              <div class="badge badge-green">aktif</div>
+            </div>
+          </div>
+          <div class="txn-item">
+            <div class="txn-icon" style="background:#F1F5F9;">🏦</div>
+            <div class="txn-info">
+              <div class="txn-name">Mandiri Giro</div>
+              <div class="txn-meta">Bank · Non-aktif</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:15px;font-weight:700;color:var(--text-3)">Rp 0</div>
+              <div class="badge" style="background:#F1F5F9;color:var(--text-3)">non-aktif</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REPORTS PAGE ===== -->
+    <div class="page" id="page-reports">
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <select class="form-select" style="width:auto;font-size:13px;">
+          <option>April 2025</option><option>Maret 2025</option>
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Pengeluaran per Kategori</span></div>
+          <div class="card-body" id="category-report">
+            <div class="bar-item"><span class="bar-label">Tagihan</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:#F59E0B"></div></div><span class="bar-val">Rp 2,1jt</span></div>
+            <div class="bar-item"><span class="bar-label">Makanan</span><div class="bar-track"><div class="bar-fill" style="width:86%;background:#F97316"></div></div><span class="bar-val">Rp 1,8jt</span></div>
+            <div class="bar-item"><span class="bar-label">Belanja</span><div class="bar-track"><div class="bar-fill" style="width:31%;background:#EC4899"></div></div><span class="bar-val">Rp 650rb</span></div>
+            <div class="bar-item"><span class="bar-label">Transportasi</span><div class="bar-track"><div class="bar-fill" style="width:24%;background:#8B5CF6"></div></div><span class="bar-val">Rp 500rb</span></div>
+            <div class="bar-item"><span class="bar-label">Hiburan</span><div class="bar-track"><div class="bar-fill" style="width:14%;background:#06B6D4"></div></div><span class="bar-val">Rp 300rb</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Ringkasan Bulanan</span></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;justify-content:space-between;padding:10px;background:var(--bg);border-radius:8px;">
+                <span style="font-size:13px;color:var(--text-2);">Pemasukan</span>
+                <span style="font-size:14px;font-weight:700;color:var(--income)">Rp 12.000.000</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:10px;background:var(--bg);border-radius:8px;">
+                <span style="font-size:13px;color:var(--text-2);">Pengeluaran</span>
+                <span style="font-size:14px;font-weight:700;color:var(--expense)">Rp 7.350.000</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:10px;background:#F0FDF4;border-radius:8px;border:1px solid #BBF7D0;">
+                <span style="font-size:13px;font-weight:600;color:var(--income)">Selisih (Net)</span>
+                <span style="font-size:15px;font-weight:700;color:var(--income)">+ Rp 4.650.000</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:10px;background:var(--bg);border-radius:8px;">
+                <span style="font-size:13px;color:var(--text-2);">Tabungan Rate</span>
+                <span style="font-size:14px;font-weight:700;color:var(--primary)">38.75%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SETTINGS PAGE ===== -->
+    <div class="page" id="page-settings">
+      <div style="display:flex;flex-direction:column;gap:16px;max-width:640px;">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Profil</span></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+            <div class="form-field" style="margin:0;">
+              <label class="form-label">Nama Lengkap</label>
+              <input type="text" class="form-input" value="Budi Santoso">
+            </div>
+            <div class="form-field" style="margin:0;">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" value="budi@keluarga.com" disabled style="background:var(--bg);">
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="showToast('Profil berhasil diperbarui')">Simpan Perubahan</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Workspace: Keluarga Budi</span></div>
+          <div class="card-body">
+            <div class="txn-list">
+              <div class="txn-item">
+                <div class="txn-icon" style="background:#E0F2FE;font-size:13px;">BS</div>
+                <div class="txn-info"><div class="txn-name">Budi Santoso</div><div class="txn-meta">budi@keluarga.com</div></div>
+                <div class="badge badge-blue">admin</div>
+              </div>
+              <div class="txn-item">
+                <div class="txn-icon" style="background:#DCFCE7;font-size:13px;">SR</div>
+                <div class="txn-info"><div class="txn-name">Sari Rahayu</div><div class="txn-meta">sari@keluarga.com</div></div>
+                <div class="badge badge-green">member</div>
+              </div>
+            </div>
+            <div style="padding-top:12px;border-top:1px solid var(--border);margin-top:4px;">
+              <button class="btn btn-ghost btn-sm" onclick="showToast('Undangan terkirim!')">+ Undang Anggota</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Kategori Kustom</span></div>
+          <div class="card-body">
+            <div class="txn-list">
+              <div class="txn-item">
+                <div class="txn-icon" style="background:#FFF7ED;">🐾</div>
+                <div class="txn-info"><div class="txn-name">Hewan Peliharaan</div><div class="txn-meta">Pengeluaran · Kustom</div></div>
+                <button class="btn btn-ghost btn-sm" onclick="showToast('Kategori dihapus')">Hapus</button>
+              </div>
+            </div>
+            <div style="padding-top:12px;border-top:1px solid var(--border);margin-top:4px;">
+              <button class="btn btn-ghost btn-sm" onclick="showToast('Tambah kategori baru')">+ Tambah Kategori</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-content -->
+</main>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Transaction Modal -->
+<div class="modal-overlay" id="txn-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Transaksi Baru</span>
+      <button class="modal-close" onclick="closeModal('txn-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="type-tabs">
+        <button class="type-tab active expense" onclick="setTxnType('expense',this)">Pengeluaran</button>
+        <button class="type-tab income" onclick="setTxnType('income',this)">Pemasukan</button>
+        <button class="type-tab transfer" onclick="setTxnType('transfer',this)">Transfer</button>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Jumlah *</label>
+        <div class="amount-wrap">
+          <span class="amount-prefix">Rp</span>
+          <input type="text" class="form-input amount" placeholder="0" oninput="formatAmount(this)" inputmode="numeric">
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Dompet *</label>
+        <select class="form-select">
+          <option>BCA Tabungan</option>
+          <option>GoPay</option>
+          <option>Uang Tunai</option>
+        </select>
+      </div>
+
+      <div class="form-field" id="category-field">
+        <label class="form-label">Kategori *</label>
+        <select class="form-select">
+          <option>-- Pilih Kategori --</option>
+          <option>Makanan & Minuman</option>
+          <option>Transportasi</option>
+          <option>Belanja</option>
+          <option>Tagihan & Utilitas</option>
+          <option>Kesehatan</option>
+          <option>Hiburan</option>
+          <option>Lainnya</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Tanggal *</label>
+        <input type="date" class="form-input" id="txn-date">
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Catatan</label>
+        <input type="text" class="form-input" placeholder="Opsional...">
+      </div>
+
+      <button class="btn btn-primary btn-block" onclick="saveTxn()">Simpan Transaksi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Copy Budget Modal -->
+<div class="modal-overlay" id="copy-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Salin Anggaran</span>
+      <button class="modal-close" onclick="closeModal('copy-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-3);margin-bottom:16px;">Salin konfigurasi anggaran dari satu bulan ke bulan lainnya.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-field">
+          <label class="form-label">Dari Bulan</label>
+          <select class="form-select">
+            <option>Maret</option><option selected>April</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Tahun</label>
+          <select class="form-select"><option>2025</option><option>2024</option></select>
+        </div>
+      </div>
+
+      <div style="text-align:center;font-size:20px;color:var(--text-3);margin:4px 0;">↓</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-field">
+          <label class="form-label">Ke Bulan</label>
+          <select class="form-select">
+            <option selected>Mei</option><option>Juni</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Tahun</label>
+          <select class="form-select"><option>2025</option></select>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Mode</label>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px;border:1.5px solid var(--primary);border-radius:9px;background:#F0F9FF;cursor:pointer;">
+            <input type="radio" name="copy-mode" value="replace" checked style="margin-top:2px;accent-color:var(--primary);">
+            <div><strong style="font-size:13px;">Timpa</strong><br><span style="font-size:12px;color:var(--text-3);">Hapus anggaran bulan tujuan, ganti dengan sumber</span></div>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px;border:1.5px solid var(--border);border-radius:9px;cursor:pointer;">
+            <input type="radio" name="copy-mode" value="merge" style="margin-top:2px;accent-color:var(--primary);">
+            <div><strong style="font-size:13px;">Gabung</strong><br><span style="font-size:12px;color:var(--text-3);">Hanya tambahkan kategori yang belum ada di tujuan</span></div>
+          </label>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" onclick="copyBudget()">Salin Anggaran ke Mei 2025</button>
+    </div>
+  </div>
+</div>
+
+<!-- Budget Modal -->
+<div class="modal-overlay" id="budget-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Tambah Anggaran</span>
+      <button class="modal-close" onclick="closeModal('budget-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-label">Kategori *</label>
+        <select class="form-select">
+          <option>Makanan & Minuman</option>
+          <option>Transportasi</option>
+          <option>Belanja</option>
+          <option>Kesehatan</option>
+          <option>Hiburan</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Jumlah Anggaran *</label>
+        <div class="amount-wrap">
+          <span class="amount-prefix">Rp</span>
+          <input type="text" class="form-input amount" placeholder="0" inputmode="numeric" oninput="formatAmount(this)">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="saveBudget()">Simpan Anggaran</button>
+    </div>
+  </div>
+</div>
+
+<!-- Wallet Modal -->
+<div class="modal-overlay" id="wallet-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Tambah Dompet</span>
+      <button class="modal-close" onclick="closeModal('wallet-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-label">Nama Dompet *</label>
+        <input type="text" class="form-input" placeholder="cth. BCA Tabungan">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Tipe *</label>
+        <select class="form-select">
+          <option>Tunai</option><option>Bank</option><option>E-Wallet</option><option>Investasi</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Saldo Awal</label>
+        <div class="amount-wrap">
+          <span class="amount-prefix">Rp</span>
+          <input type="text" class="form-input amount" placeholder="0" inputmode="numeric" oninput="formatAmount(this)">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="saveWallet()">Tambah Dompet</button>
+    </div>
+  </div>
+</div>
+
+<!-- OCR Modal -->
+<div class="modal-overlay" id="ocr-modal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <span class="modal-title">📷 Scan Struk / Nota</span>
+      <button class="modal-close" onclick="closeModal('ocr-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="ocr-drop" class="drop-zone" onclick="document.getElementById('ocr-file').click()">
+        <div class="drop-icon">📄</div>
+        <div class="drop-label">Unggah foto struk atau PDF</div>
+        <div class="drop-sub">Klik untuk memilih file · JPG, PNG, PDF</div>
+        <input type="file" id="ocr-file" accept="image/*,.pdf" style="display:none;" onchange="handleOcrFile(this)">
+      </div>
+      <div id="ocr-result" style="display:none;margin-top:16px;">
+        <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:14px;margin-bottom:14px;">
+          <p style="font-size:12.5px;font-weight:700;color:var(--income);margin-bottom:8px;">✓ Teks berhasil diekstrak</p>
+          <p style="font-size:12px;color:var(--text-2);">Merchant: <strong>INDOMARET</strong></p>
+          <p style="font-size:12px;color:var(--text-2);">Tanggal: <strong>18 April 2025</strong></p>
+          <p style="font-size:12px;color:var(--text-2);">Total: <strong style="color:var(--expense)">Rp 47.500</strong></p>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Jumlah (dari struk)</label>
+          <div class="amount-wrap"><span class="amount-prefix">Rp</span><input type="text" class="form-input amount" value="47.500"></div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Kategori</label>
+          <select class="form-select"><option>Belanja</option><option>Makanan & Minuman</option></select>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="useOcrData()">Gunakan Data Ini</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+  // ===== INIT =====
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('txn-date').value = today;
+
+  // Budget data
+  const budgets = [
+    { name: 'Makanan & Minuman', color: '#F97316', used: 1800000, total: 3000000 },
+    { name: 'Tagihan & Utilitas', color: '#F59E0B', used: 2100000, total: 2000000 },
+    { name: 'Transportasi', color: '#8B5CF6', used: 680000, total: 1000000 },
+    { name: 'Belanja', color: '#EC4899', used: 650000, total: 2000000 },
+    { name: 'Kesehatan', color: '#EF4444', used: 120000, total: 1000000 },
+    { name: 'Hiburan', color: '#06B6D4', used: 300000, total: 1000000 },
+    { name: 'Pendidikan', color: '#3B82F6', used: 0, total: 2000000 }
+  ];
+
+  function renderBudgets() {
+    const list = document.getElementById('budget-list');
+    list.innerHTML = budgets.map(b => {
+      const pct = Math.min((b.used / b.total) * 100, 100);
+      const over = b.used > b.total;
+      const fmt = n => 'Rp ' + (n >= 1000000 ? (n/1000000).toFixed(1)+'jt' : (n/1000).toFixed(0)+'rb');
+      return `<div class="budget-item">
+        <div class="budget-header">
+          <div class="budget-cat"><div class="budget-cat-dot" style="background:${b.color}"></div>${b.name}</div>
+          <div class="budget-amounts"><strong>${fmt(b.used)}</strong> / ${fmt(b.total)}</div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${over?'#DC2626':b.color}"></div></div>
+        <div class="budget-pct" style="${over?'color:var(--expense);font-weight:600;':''}">${over?'⚠ Melebihi anggaran!':Math.round(pct)+'%'}</div>
+      </div>`;
+    }).join('');
+  }
+  renderBudgets();
+
+  // ===== NAVIGATION =====
+  const pageTitles = {
+    dashboard: 'Dashboard',
+    transactions: 'Transaksi',
+    budgets: 'Anggaran',
+    wallets: 'Dompet',
+    reports: 'Laporan',
+    settings: 'Pengaturan'
+  };
+
+  function showPage(name, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    if (btn) btn.classList.add('active');
+    document.getElementById('page-title').textContent = pageTitles[name] || name;
+  }
+
+  // ===== MODALS =====
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+  });
+
+  // ===== TRANSACTION FORM =====
+  function setTxnType(type, btn) {
+    document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('category-field').style.display = type === 'transfer' ? 'none' : '';
+  }
+
+  function formatAmount(input) {
+    let val = input.value.replace(/\D/g, '');
+    if (val) input.value = parseInt(val, 10).toLocaleString('id-ID');
+    else input.value = '';
+  }
+
+  function saveTxn() {
+    closeModal('txn-modal');
+    showToast('Transaksi berhasil disimpan ✓');
+  }
+
+  function saveBudget() {
+    closeModal('budget-modal');
+    showToast('Anggaran berhasil ditambahkan ✓');
+  }
+
+  function saveWallet() {
+    closeModal('wallet-modal');
+    showToast('Dompet berhasil ditambahkan ✓');
+  }
+
+  function copyBudget() {
+    closeModal('copy-modal');
+    showToast('Anggaran April berhasil disalin ke Mei 2025 ✓');
+  }
+
+  // ===== OCR =====
+  function handleOcrFile(input) {
+    if (!input.files.length) return;
+    const drop = document.getElementById('ocr-drop');
+    const result = document.getElementById('ocr-result');
+    drop.innerHTML = '<div class="drop-icon" style="animation:spin 1s linear infinite;display:inline-block;">⟳</div><div class="drop-label">Memproses struk...</div><div class="drop-sub">Mohon tunggu sebentar</div>';
+    setTimeout(() => {
+      result.style.display = 'block';
+      drop.style.display = 'none';
+    }, 1800);
+  }
+
+  function useOcrData() {
+    closeModal('ocr-modal');
+    openModal('txn-modal');
+    document.querySelector('#txn-modal .amount-input, #txn-modal .form-input.amount').value = '47.500';
+    showToast('Data struk berhasil diimpor ✓');
+    // reset OCR modal
+    setTimeout(() => {
+      document.getElementById('ocr-drop').style.display = '';
+      document.getElementById('ocr-result').style.display = 'none';
+      document.getElementById('ocr-drop').innerHTML = '<div class="drop-icon">📄</div><div class="drop-label">Unggah foto struk atau PDF</div><div class="drop-sub">Klik untuk memilih file · JPG, PNG, PDF</div><input type="file" id="ocr-file" accept="image/*,.pdf" style="display:none;" onchange="handleOcrFile(this)">';
+    }, 500);
+  }
+
+  // ===== TOAST =====
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // Make showToast global (called from inline onclick)
+  window.showToast = showToast;
+</script>
+</body>
+</html>
